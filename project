@@ -1,0 +1,356 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Tugas1
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void rdoSendiri_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdoSendiri.Checked == true)
+            {
+                Ongkir = 0;
+                
+            }
+            
+           
+            HitungTotal();
+        }
+
+        private void btnKeluar_Click(object sender, EventArgs e)
+        {
+            if(MessageBox.Show("Apakah anda yakin ingin keluar?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+            {
+                this.Close();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.BackgroundImage = global::Tugas1.Properties.Resources.back2;
+            btnCetak.Enabled = false;
+            //gboAlamat.Enabled = false;
+            
+            lklFaktur.Text = "";
+            dtpPengambilan.MinDate = DateTime.Today;
+            dtpPengambilan.Format = DateTimePickerFormat.Custom;
+            dtpPengambilan.CustomFormat = "dd MMMM yyy";
+
+            cboMenu.Items.Add("Mie Goreng");
+            cboMenu.Items.Add("Mie Sop");
+            cboMenu.Items.Add("Nasi Goreng");
+            cboMenu.Items.Add("Kurnia");
+            cboMenu.Items.Add("Teh");
+            
+            
+
+            lblSatuan.Text="";
+            
+        }
+        decimal Harga = 0, Diskon = 0, Ongkir = 0, Total = 0,bayar=0,kembalian=0;
+       
+
+        decimal hargaDiskon = 0;
+        private void HitungTotal()
+        {
+            
+            Total = 0;
+            for(int i = 0; i <= ListTotal.Length - 1; i++)
+            {
+                Total += ListTotal[i];
+            }
+            hargaDiskon = Diskon * Total / 100;
+            Total += (nudJumlah.Value-hargaDiskon)+Ongkir;
+            lblOngkir.Text = Ongkir.ToString("Rp #,##0");
+            lblTotal.Text = Total.ToString("Rp #,##0");
+
+            
+        }
+        private void FakturBelanja()
+        {
+            rtbFaktur.Text = new string('=', 50) + "\n";
+            rtbFaktur.Text += new string(' ', 22) + "Rumah Makan C&W" + "\n";
+            rtbFaktur.Text += new string('=', 50)+"\n";
+
+            rtbFaktur.Text += "Tanggal Pemesanan: " + DateTime.Now.ToString()+"\n\n";
+
+            for (int i = 0; i <= ListJumlah.Length - 1; i++)
+            {
+
+                rtbFaktur.Text += (i + 1).ToString("#,#") + ". " + ListNama[i] + new string(' ', 20 - ((i + 1).ToString("#,#") + ". " + ListNama[i]).Length) + ListJumlah[i] + new string(' ', 3 - (ListJumlah[i].ToString()).Length) + "* " + ListHarga[i] + new string(' ', 10 - (ListHarga[i].ToString()).Length) + ListTotal[i].ToString("Rp #,##0") + "\n";
+            }
+        }
+        //private void rdoNonMember_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    if (rdoNonMember.Checked == true)
+        //    {
+        //        Diskon = 0;
+                
+        //    }
+        //    lblDiskon.Text = Diskon.ToString();
+        //    HitungTotal();
+
+        //}
+        string[] ListNama = new string[0];
+        decimal[] ListJumlah = new decimal[0];
+        decimal[] ListHarga = new decimal[0];
+        decimal[] ListTotal = new decimal[0];
+        private void btnTambah_Click(object sender, EventArgs e)
+        {
+            if (cboMenu.SelectedIndex == -1)
+            {
+                MessageBox.Show("Pilih Menu Terlebih Dahulu", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                cboMenu.Focus();
+                return;
+            }
+            else if (nudJumlah.Value == 0)
+            {
+                MessageBox.Show("Jumlah harus lebih besar dari 0", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                nudJumlah.Focus();
+                return;
+            }
+            Array.Resize(ref ListNama, ListNama.Length + 1);
+            Array.Resize(ref ListJumlah, ListJumlah.Length + 1);
+            Array.Resize(ref ListHarga, ListHarga.Length + 1);
+            Array.Resize(ref ListTotal, ListTotal.Length + 1);
+
+            ListNama[ListNama.Length-1] = cboMenu.SelectedItem.ToString();
+            ListJumlah[ListJumlah.Length-1] = nudJumlah.Value;
+            ListHarga[ListHarga.Length-1] = Harga;
+            ListTotal[ListTotal.Length-1] = nudJumlah.Value * Harga;
+
+            cboMenu.SelectedIndex = -1;
+            nudJumlah.Value = 0;
+            lblHarga.Text = "";
+            picMenu.Image = null;
+            HitungTotal();
+
+            FakturBelanja();
+        }
+
+        private void rtbFaktur_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnCetak_Click(object sender, EventArgs e)
+        {
+            
+            if (bayar < Total)
+            {
+                MessageBox.Show("Uang Anda Tidak Cukup", "Bayar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            //else if (rdoAntar.Checked && txtAlamat.Text.Trim()=="")
+            //{
+            //    MessageBox.Show("Alamat harus diisi", "Pengiriman", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    return;
+            //}
+            FakturBelanja();
+            rtbFaktur.Text += new string('=', 50)+"\n";
+            if (rdoAntar.Checked == true)
+            {
+                //rtbFaktur.Text += "Alamat Pengiriman: " + txtAlamat.Text + "\n"+"\n";
+                rtbFaktur.Text += "Biaya Ongkir" + new string(' ', 45 - ("Biaya Ongkir " + lblOngkir.Text).Length) + lblOngkir.Text + "\n";
+                
+            }
+            //if (rdoMember.Checked == true)
+            //{
+            //    rtbFaktur.Text += "Diskon" + new string(' ', 19) + lblDiskon.Text + "%" + new string(' ', 6) + hargaDiskon.ToString("-Rp #,##0")+"\n";
+            //}
+            rtbFaktur.Text += "Total" + new string(' ', 44 - ("Total" + lblTotal.Text).Length) + lblTotal.Text + "\n";
+            rtbFaktur.Text += "Bayar" + new string(' ',40 -("Bayar" + bayar).Length)+bayar.ToString("Rp #,##0") +"\n";
+            rtbFaktur.Text += "Kembalian" + new string(' ', 39 -("Kembalian" + kembalian).Length) + kembalian.ToString("Rp #,##0")+"\n"+"\n";
+            rtbFaktur.Text += "tanggal Pengambilan/Pengantaran :"+dtpPengambilan.Value.ToString("dd MMMM yyy")+"\n\n";
+            rtbFaktur.Text += new string(' ',3) + "Terima Kasih Sudah Berbelanja di Rumah Makan C&W" + "\n";  
+            rtbFaktur.Text += new string(' ',7) + "semoga anda puas dengan produk kami dan"+ "\n";
+            rtbFaktur.Text += new string(' ',7) +"senantiasa berlangganan di Rumah Makan C&W"+"\n";
+
+            rtbFaktur.SaveFile("Bukti Pemesanan.doc");
+            lklFaktur.Text = "Bukti Pemesanan";
+        }
+
+        private void txtBayar_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+            else
+            {
+                e.Handled = false;
+            }
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        
+
+        private void txtBayar_TextChanged(object sender, EventArgs e)
+        {
+            
+            if (!string.IsNullOrWhiteSpace(txtBayar.Text)&& (rdoAntar.Checked == false && rdoSendiri.Checked == false) || ListTotal.Length == 0 || txtBayar.Text == "" )
+            {
+                btnCetak.Enabled = false;
+                kembalian = 0;
+                
+            }
+            else
+            {
+                btnCetak.Enabled = true;
+                bayar = decimal.Parse(txtBayar.Text);
+                kembalian = decimal.Parse(txtBayar.Text) - Total;
+            }
+        }
+
+        private void gboMeno_Enter(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtAlamat_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtBayar_Leave(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void lklFaktur_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("Bukti Pemesanan.doc");
+        }
+
+        private void btnKosong_Click(object sender, EventArgs e)
+        {
+            picMenu.Image = null;
+            ListNama = null;
+            ListNama = new string[0];
+            ListTotal = null;
+            ListTotal = new decimal[0];
+            ListJumlah = null;
+            ListJumlah = new decimal[0];
+            ListHarga = null;
+            ListHarga = new decimal[0];
+            cboMenu.SelectedIndex = -1;
+            dtpPengambilan.ResetText();
+            nudJumlah.Value = 0;
+            lblHarga.Text = "";
+            //lblDiskon.Text = "";
+            lblSatuan.Text = "";
+            lblOngkir.Text = "";
+            txtBayar.Text = "";
+            //txtAlamat.Text = "";
+            lblTotal.Text = "";
+            rtbFaktur.ResetText();
+            rdoAntar.Checked = false;
+            rdoSendiri.Checked = false;
+            //rdoNonMember.Checked = false;
+            //rdoMember.Checked = false;
+            lklFaktur.Text = "";
+        }
+
+        private void rdoAntar_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdoAntar.Checked == true)
+            {
+                //gboAlamat.Enabled = true;
+                Ongkir = 10000;
+                MessageBox.Show("Biaya Takeaway sebesar Rp 10.000", "Informasi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+               
+            }
+            else
+            {
+                //gboAlamat.Enabled = false;
+            }
+            
+            HitungTotal();
+        }
+
+        //private void rdoMember_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    if (rdoMember.Checked == true)
+        //    {
+        //        Diskon = 10;
+               
+        //    }
+            
+        //    lblDiskon.Text = Diskon.ToString();
+        //    HitungTotal();
+        //}
+
+        private void cboMenu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cboMenu.SelectedIndex == 0)
+            {
+                picMenu.Image = Properties.Resources.Mie;
+                Harga = 35000;
+
+                lblSatuan.Text = "Item";
+            }
+            else if (cboMenu.SelectedIndex == 1)
+            {
+                picMenu.Image = Properties.Resources.Misop;
+                Harga = 20000;
+                lblSatuan.Text = "Item";
+            }
+            else if (cboMenu.SelectedIndex == 2)
+            {
+                picMenu.Image = Properties.Resources.Nasi;
+                Harga = 30000;
+                lblSatuan.Text = "Item";
+            }
+            else if (cboMenu.SelectedIndex == 3)
+            {
+                picMenu.Image = Properties.Resources.Kurnia;
+                Harga = 10000;
+                lblSatuan.Text = "Item";
+            }
+            else if (cboMenu.SelectedIndex == 4)
+            {
+                picMenu.Image = Properties.Resources.Teh;
+                Harga = 8000;
+                lblSatuan.Text = "Item";
+            }
+            
+
+            
+
+            lblHarga.Text = Harga.ToString("Rp #,##0");
+        }
+
+        
+        }
+    }
